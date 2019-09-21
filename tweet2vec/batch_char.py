@@ -104,6 +104,8 @@ def prepare_data(seqs_x, chardict, n_chars=1000):
     x = np.zeros((n_samples, MAX_LENGTH)).astype("int32")
     x_mask = np.zeros((n_samples, MAX_LENGTH)).astype("float32")
     for idx, s_x in enumerate(seqs_x):
+        if len(s_x) > MAX_LENGTH:
+            s_x = s_x[:MAX_LENGTH]
         x[idx, : lengths_x[idx]] = s_x
         x_mask[idx, : lengths_x[idx]] = 1.0
 
