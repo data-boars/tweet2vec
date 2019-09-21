@@ -137,7 +137,7 @@ def save_dictionary(worddict, wordcount, loc):
     """
     Save a dictionary to the specified location 
     """
-    with open(loc, "w") as f:
+    with open(loc, "wb") as f:
         pkl.dump(worddict, f)
         pkl.dump(wordcount, f)
 
