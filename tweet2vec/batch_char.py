@@ -74,7 +74,7 @@ class BatchTweets:
         # data and targets for current batch
         x = [self.data[ii] for ii in curr_indices]
         if self.targets is None:
-            return x
+            return x, [-1] * len(x)
 
         y = [self.targets[ii] for ii in curr_indices]
         return x, y
