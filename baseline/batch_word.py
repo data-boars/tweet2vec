@@ -1,22 +1,41 @@
-import numpy as np
-import cPickle as pkl
-import codecs
-
+import pickle as pkl
 from collections import OrderedDict
-from settings_word import MAX_LENGTH, WORD_LEVEL
 
-class BatchTweets():
+import numpy as np
 
-    def __init__(self, data, targets, labeldict, batch_size=128, max_classes=1000, test=False):
+from .settings_word import MAX_LENGTH, WORD_LEVEL
+
+
+class BatchTweets:
+    def __init__(
+        self,
+        data,
+        targets,
+        labeldict,
+        batch_size=128,
+        max_classes=1000,
+        test=False,
+    ):
         # convert targets to indices
         if not test:
             tags = []
             for l in targets:
-                tags.append(labeldict[l] if l in labeldict and labeldict[l] < max_classes else 0)
+                tags.append(
+                    labeldict[l]
+                    if l in labeldict and labeldict[l] < max_classes
+                    else 0
+                )
         else:
             tags = []
             for line in targets:
-                tags.append([labeldict[l] if l in labeldict and labeldict[l] < max_classes else 0 for l in line])
+                tags.append(
+                    [
+                        labeldict[l]
+                        if l in labeldict and labeldict[l] < max_classes
+                        else 0
+                        for l in line
+                    ]
+                )
 
         self.batch_size = batch_size
         self.data = data
@@ -34,7 +53,7 @@ class BatchTweets():
         self.curr_pos = 0
         self.curr_remaining = len(self.curr_indices)
 
-    def next(self):
+    def __next__(self):
         if self.curr_pos >= len(self.indices):
             self.reset()
             raise StopIteration()
@@ -43,7 +62,9 @@ class BatchTweets():
         curr_batch_size = np.minimum(self.batch_size, self.curr_remaining)
 
         # indices for current batch
-        curr_indices = self.curr_indices[self.curr_pos:self.curr_pos+curr_batch_size]
+        curr_indices = self.curr_indices[
+            self.curr_pos : self.curr_pos + curr_batch_size
+        ]
         self.curr_pos += curr_batch_size
         self.curr_remaining -= curr_batch_size
 
@@ -56,29 +77,45 @@ class BatchTweets():
     def __iter__(self):
         return self
 
+
 def prepare_data(seqs_x, tokendict, n_tokens=1000):
     """
     Prepare the data for training - add masks and remove infrequent tokens
     """
     seqsX = []
     for cc in seqs_x:
-        if (WORD_LEVEL):
-            seqsX.append([tokendict[c] if c in tokendict and tokendict[c] < n_tokens else 0 for c in cc.split()[:MAX_LENGTH]])
+        if WORD_LEVEL:
+            seqsX.append(
+                [
+                    tokendict[c]
+                    if c in tokendict and tokendict[c] < n_tokens
+                    else 0
+                    for c in cc.split()[:MAX_LENGTH]
+                ]
+            )
         else:
-            seqsX.append([tokendict[c] if c in tokendict and tokendict[c] < n_tokens else 0 for c in list(cc)[:MAX_LENGTH]])
+            seqsX.append(
+                [
+                    tokendict[c]
+                    if c in tokendict and tokendict[c] < n_tokens
+                    else 0
+                    for c in list(cc)[:MAX_LENGTH]
+                ]
+            )
     seqs_x = seqsX
 
     lengths_x = [len(s) for s in seqs_x]
 
     n_samples = len(seqs_x)
 
-    x = np.zeros((n_samples,MAX_LENGTH)).astype('int32')
-    x_mask = np.zeros((n_samples,MAX_LENGTH)).astype('float32')
+    x = np.zeros((n_samples, MAX_LENGTH)).astype("int32")
+    x_mask = np.zeros((n_samples, MAX_LENGTH)).astype("float32")
     for idx, s_x in enumerate(seqs_x):
-        x[idx,:lengths_x[idx]] = s_x
-        x_mask[idx,:lengths_x[idx]] = 1.
+        x[idx, : lengths_x[idx]] = s_x
+        x_mask[idx, : lengths_x[idx]] = 1.
 
     return np.expand_dims(x, axis=2), x_mask
+
 
 def build_dictionary(text):
     """
@@ -87,7 +124,7 @@ def build_dictionary(text):
     """
     tokencount = OrderedDict()
 
-    for cc in text:       
+    for cc in text:
         if WORD_LEVEL:
             tokens = cc.split()
         else:
@@ -97,8 +134,8 @@ def build_dictionary(text):
                 tokencount[c] = 0
             tokencount[c] += 1
 
-    tokens = tokencount.keys()
-    freqs = tokencount.values()
+    tokens = list(tokencount.keys())
+    freqs = list(tokencount.values())
     sorted_idx = np.argsort(freqs)[::-1]
 
     tokendict = OrderedDict()
@@ -107,13 +144,15 @@ def build_dictionary(text):
 
     return tokendict, tokencount
 
+
 def save_dictionary(worddict, wordcount, loc):
     """
     Save a dictionary to the specified location 
     """
-    with open(loc, 'w') as f:
+    with open(loc, "w") as f:
         pkl.dump(worddict, f)
         pkl.dump(wordcount, f)
+
 
 def build_label_dictionary(targets):
     """
@@ -125,8 +164,8 @@ def build_label_dictionary(targets):
         if l not in labelcount:
             labelcount[l] = 0
         labelcount[l] += 1
-    labels = labelcount.keys()
-    freqs = labelcount.values()
+    labels = list(labelcount.keys())
+    freqs = list(labelcount.values())
     sorted_idx = np.argsort(freqs)[::-1]
 
     labeldict = OrderedDict()

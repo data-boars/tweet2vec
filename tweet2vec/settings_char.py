@@ -29,7 +29,7 @@ RELOAD_MODEL = False
 # NAG
 MOMENTUM = 0.9
 # clipping
-GRAD_CLIP = 5.
+GRAD_CLIP = 5.0
 # use bias
 BIAS = False
 # use schedule
