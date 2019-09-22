@@ -15,6 +15,7 @@ class BatchTweets:
         batch_size=128,
         max_classes=1000,
         test=False,
+        shuffle=False,
     ):
         # convert targets to indices
         if targets is not None:
@@ -43,16 +44,23 @@ class BatchTweets:
 
         self.batch_size = batch_size
         self.data = data
+        self.shuffle = shuffle
 
         self.prepare()
         self.reset()
 
     def prepare(self):
         self.indices = np.arange(len(self.data))
-        self.curr_indices = np.random.permutation(self.indices)
+        if self.shuffle:
+            self.curr_indices = np.random.permutation(self.indices)
+        else:
+            self.curr_indices = self.indices
 
     def reset(self):
-        self.curr_indices = np.random.permutation(self.indices)
+        if self.shuffle:
+            self.curr_indices = np.random.permutation(self.indices)
+        else:
+            self.curr_indices = self.indices
         self.curr_pos = 0
         self.curr_remaining = len(self.curr_indices)
 
