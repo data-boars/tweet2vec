@@ -293,7 +293,7 @@ def load_params(path):
     """
     params = OrderedDict()
 
-    with open(path, "r") as f:
+    with open(path, "rb") as f:
         npzfile = np.load(f)
         for kk, vv in npzfile.items():
             params[kk] = vv
